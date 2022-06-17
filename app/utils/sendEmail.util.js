@@ -1,8 +1,9 @@
 /*
+ * Title:   Login System Advanced 
  * Author:     Sneh Jaiswal
- * Created On: Fri Jan 21 2022 10:49:46 pm
- * Title:   ITEG Management System
+ * Created On: Fri Jun 17 2022 10:57:15 am
  */
+
 
 "use strict";
 const config = require("../../config");
