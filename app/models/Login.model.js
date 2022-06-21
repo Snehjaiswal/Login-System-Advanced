@@ -12,10 +12,7 @@ const jwt = require('jsonwebtoken');
 
 
 const LoginSchema = Schema({
-    uniqueID: {
-        type: String,
-        require: true,
-    },
+
     Name: {
         type: String,
         required: [true, "Please enter your name!"],
@@ -35,28 +32,16 @@ const LoginSchema = Schema({
         type: String,
         required: true
     },
-    otp:"",
-    expires:"",
-    isVerifyed:Boolean,
-    Role: {
-        type: String,
-        default: "Student"
-    }    },
+    otp: "",
+    expires: "",
+    isVerifyed: Boolean,
+},
     {
         timestamps: true
     },
 
 
 )
-// LoginSchema.indexes();
-
-
-// LoginSchema.createIndex(
-//     { creationDate: 1 },
-//     { expireAfterSeconds: 300, partialFilterExpression: { isVerifyed: { $eq: false } } },function(err, data){
-//         console.log(err);
-//         console.log(data);
-//        });
 
 // collection creation 
 const LoginModel = model('LOGIN', LoginSchema, "User Login");

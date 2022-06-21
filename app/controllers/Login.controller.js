@@ -9,7 +9,7 @@
 
 const LoginModel = require("../models/Login.model");
 const bcrypt = require("bcryptjs");
-// const jwt = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const uuid = require("uuid").v4;
 
 const sendMail = require("../utils/sendEmail.util");
@@ -18,7 +18,7 @@ const OtpUtil = require("../utils/otp.util")
 // LOGIN CLASS
 class Login {
     async signup(req, res) {
-        const uniqueID = uuid();
+
         try {
             const { Name, email, password, cpassword } = req.body;
 
@@ -60,7 +60,6 @@ class Login {
 
             // it's help save data in db
             const newUser = new LoginModel({
-                uniqueID,
                 Name,
                 email,
                 password: passwordHash,
@@ -74,6 +73,12 @@ class Login {
             await newUser.save();
             console.log({ newUser });
 
+            // const saved_user = await LoginModel.findOne({ email: email })
+            // // Genwrate JWT Token
+            // const token = jwt.sign({ userID: saved_user._id },
+            //     process.env.SECRET_KEY, { expiresIn: '1d' }
+            // )
+
             res.json({
                 status: "panddig",
                 msg: "Register Success! Please activate your email to start.",
@@ -83,7 +88,8 @@ class Login {
             return res.status(500).json({ msg: err.message });
         }
     }
-    
+
+
 
     //otp verifed
     async VerifyedOTP(req, res) {
@@ -105,22 +111,28 @@ class Login {
 
 
         if (otp === isValid.otp) {
-            res.status(200).json({ msg: "Otp is Corect" });
 
+            // Genwrate JWT Token
+            const token = jwt.sign({ userID: isValid._id },
+                process.env.SECRET_KEY, { expiresIn: '1d' })
+
+            res.status(200).json({ msg: "Otp is Corect", "token": token, "status": "success", });
+
+            // find and update is varified (true)
             const verifyAccount = LoginModel.findOneAndUpdate({ email: email }, { $set: { isVerifyed: true } })
                 .then(() => {
-
                     console.log("successfully verifed");
                 }).catch((err) => {
                     console.log(err);
                 })
+
 
         } else {
             res.status(400).json({ msg: "Otp is incorect" });
         }
 
     }
-    
+
     // student signin information
     async signin(req, res) {
         try {
@@ -139,10 +151,17 @@ class Login {
                 return res.status(400).json({ msg: "This email in not Verified." });
 
             const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch)
-                return res.status(400).json({ msg: "Password is incorrect." });
+            if ((user.email === email) && !isMatch)
 
-            res.json({ msg: "Login success!" });
+                return res.status(400).json({ msg: "Email or password is not valid." });
+
+
+            // Genwrate JWT Token
+            const token = jwt.sign({ userID: user._id },
+                process.env.SECRET_KEY, { expiresIn: '1d' })
+            res.status(200).json({ msg: "Login success!", "token": token, "status": "success", });
+
+
             console.log(`Login Success!`);
 
 
@@ -151,65 +170,23 @@ class Login {
         }
     }
 
-    // FORGET PASSWORD
-    async Forgot_Password(req, res) {
+    // Change password
+    async changePassword(req, res) {
 
-        try {
-            const { email } = req.body;
-            const user = await LoginModel.findOne({
-                $and: [
-                    { email: email },
-                    { isVerifyed: true }
-                ]
-            });
-            if (!user)
-                return res.status(400).json({ msg: "This email in not Verified." });
+        const { password, cpasswword } = req.body;
+        if (password && cpasswword) {
+            if (password !== cpasswword) {
+                res.send({ "status": "faild", msg: "New password and confirm password dosn't match" })
+            } else {
+                //Hash password
+                const passwordHash = await bcrypt.hash(password, 10);
+                const cpasswordHash = await bcrypt.hash(cpassword, 10);
 
-            const { otp, expires } = await OtpUtil.generateOTP(email);
-            console.log({ otp, expires })
-
-            const url = ` OTP: ${otp} `; //url for email
-
-            // it's help send mail
-            sendMail.sendVerificationMail(email, url, "Verify your email address");
-            console.log("OTP SEND");
-
-            const updateOtp = LoginModel.updateMany({ email: email }, { $set: { otp: otp } }, { expires: expires }, function (err, docs) {
-                if (err) {
-                    console.log(err)
-                }
-                else {
-                    console.log("Updated Docs : ", docs);
-                }
-            })
-                .then(() => {
-
-                    console.log("successfully verifed");
-                }).catch((err) => {
-                    console.log(err);
-                })
-
-            // // Verify otp
-            // const VerifyOtp = await VerifyedOTP(otp);
-            // console.log(verifyOtp);
-
-
-        } catch (err) {
-            return res.status(500).json({ msg: err.message });
-            console.log(err);
+            }
+        } else {
+            res.senD({ "status": "failed", msg: "All feild are reqired" })
         }
-
     }
-
-
-
-
-
-
-
-
-
-
 
 
 }
