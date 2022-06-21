@@ -13,7 +13,6 @@ const config = {
 
   dbUri: process.env.MONGO_URI,
   dbName: process.env.MONGO_DB_NAME,
-  BUCKET: process.env.BUCKET,
   secretAccessKey: process.env.ACCESS_SECRET,
   accessKeyId: process.env.ACCESS_KEY,
   region: process.env.REGION,
