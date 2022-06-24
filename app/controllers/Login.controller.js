@@ -109,7 +109,6 @@ class Login {
             })
         }
 
-
         if (otp === isValid.otp) {
 
             // Genwrate JWT Token
@@ -157,8 +156,10 @@ class Login {
 
 
             // Genwrate JWT Token
-            const token = jwt.sign({ userID: user._id },
+            const token = jwt.sign({ userID: user._id ,email:email},
                 process.env.SECRET_KEY, { expiresIn: '1d' })
+
+
             res.status(200).json({ msg: "Login success!", "token": token, "status": "success", });
 
 
